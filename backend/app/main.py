@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import os
+import secrets
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -10,9 +11,11 @@ app = FastAPI(title="JWT FastAPI Example")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_SECONDS = 300
-SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production")
+SECRET_KEY = os.getenv("SECRET_KEY")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY environment variable is required")
 
 security = HTTPBearer()
 
@@ -45,7 +48,7 @@ def validate_token(token: str) -> str:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         token_type = payload.get("type")
-        if username != ADMIN_USERNAME or token_type != "access":
+        if not username or token_type != "access":
             raise credentials_exception
         return username
     except JWTError as exc:
@@ -59,7 +62,9 @@ def health() -> dict[str, str]:
 
 @app.post("/token", response_model=TokenResponse)
 def login(data: LoginRequest) -> TokenResponse:
-    if data.username != ADMIN_USERNAME or data.password != ADMIN_PASSWORD:
+    valid_username = secrets.compare_digest(data.username, ADMIN_USERNAME)
+    valid_password = secrets.compare_digest(data.password, ADMIN_PASSWORD)
+    if not valid_username or not valid_password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
@@ -78,6 +83,11 @@ def refresh_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> TokenResponse:
     username = validate_token(credentials.credentials)
+    if not secrets.compare_digest(username, ADMIN_USERNAME):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        )
     token = create_access_token(username)
     return TokenResponse(
         access_token=token,
