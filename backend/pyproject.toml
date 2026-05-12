@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "backend-jwt-api"
+version = "0.1.0"
+description = "FastAPI JWT example"
+authors = ["Baufest <dev@baufest.com>"]
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = { extras = ["standard"], version = "^0.30.6" }
+python-jose = { extras = ["cryptography"], version = "^3.3.0" }
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
