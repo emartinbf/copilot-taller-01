@@ -13,6 +13,7 @@ Aplicación Web API con FastAPI que implementa autenticación JWT.
 ```bash
 cd backend
 poetry install
+cp .env.example .env
 ```
 
 ## Ejecutar localmente
@@ -72,6 +73,7 @@ Respuesta:
 Desde la carpeta `backend`:
 
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 

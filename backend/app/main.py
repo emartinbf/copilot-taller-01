@@ -11,8 +11,8 @@ app = FastAPI(title="JWT FastAPI Example")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_SECONDS = 300
 SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production")
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
 security = HTTPBearer()
 
@@ -29,12 +29,14 @@ class TokenResponse(BaseModel):
 
 
 def create_access_token(username: str) -> str:
+    """Create a signed JWT access token for the given username."""
     expire = datetime.now(timezone.utc) + timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS)
-    payload = {"sub": username, "exp": expire}
+    payload = {"sub": username, "exp": expire, "type": "access"}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def validate_token(token: str) -> str:
+    """Validate JWT token and return the authorized username."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid token",
@@ -42,7 +44,8 @@ def validate_token(token: str) -> str:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
-        if username != ADMIN_USERNAME:
+        token_type = payload.get("type")
+        if username != ADMIN_USERNAME or token_type != "access":
             raise credentials_exception
         return username
     except JWTError as exc:
