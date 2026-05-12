@@ -22,6 +22,8 @@ Puedes generar un `SECRET_KEY` seguro con:
 openssl rand -hex 32
 ```
 
+> Si no defines `ADMIN_USERNAME` y `ADMIN_PASSWORD`, la API usa por defecto `admin/admin123`.
+
 ## Ejecutar localmente
 
 ```bash

@@ -62,9 +62,9 @@ def health() -> dict[str, str]:
 
 @app.post("/token", response_model=TokenResponse)
 def login(data: LoginRequest) -> TokenResponse:
-    valid_username = secrets.compare_digest(data.username, ADMIN_USERNAME)
-    valid_password = secrets.compare_digest(data.password, ADMIN_PASSWORD)
-    if not valid_username or not valid_password:
+    expected_credentials = f"{ADMIN_USERNAME}:{ADMIN_PASSWORD}"
+    provided_credentials = f"{data.username}:{data.password}"
+    if not secrets.compare_digest(provided_credentials, expected_credentials):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
