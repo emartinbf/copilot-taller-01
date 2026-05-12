@@ -16,6 +16,12 @@ poetry install
 cp .env.example .env
 ```
 
+Puedes generar un `SECRET_KEY` seguro con:
+
+```bash
+openssl rand -hex 32
+```
+
 ## Ejecutar localmente
 
 ```bash

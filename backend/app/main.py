@@ -83,11 +83,6 @@ def refresh_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> TokenResponse:
     username = validate_token(credentials.credentials)
-    if not secrets.compare_digest(username, ADMIN_USERNAME):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
     token = create_access_token(username)
     return TokenResponse(
         access_token=token,
